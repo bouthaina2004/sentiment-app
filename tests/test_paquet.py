@@ -25,7 +25,7 @@ COMMANDE = shutil.which("sentiment", path=str(Path(sys.executable).parent))
 
 def test_importe_depuis_le_paquet_installe() -> None:
     assert "site-packages" in (sentiment_app.__file__ or "")
-    assert sentiment_app.__version__ == "1.0.0"
+    assert sentiment_app.__version__ == "1.0.1"
 
 
 def test_prediction_positive_et_score_valide() -> None:

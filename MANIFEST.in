@@ -1,0 +1,2 @@
+include README-PAQUET.md
+include src/sentiment_app/modele/sentiment.joblib

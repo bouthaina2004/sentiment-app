@@ -12,7 +12,7 @@ from pathlib import Path
 
 RACINE = Path(__file__).resolve().parents[1]
 DIST = RACINE / "dist"
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 ROUE = f"sentiment_app-{VERSION}-py3-none-any.whl"
 SOURCE = f"sentiment_app-{VERSION}.tar.gz"
 RAPPORT = RACINE / "docs" / "livrable-tp4.txt"
@@ -98,60 +98,82 @@ def main() -> int:
             )
         except zipfile.BadZipFile:
             verifier(False, "la roue est une archive ZIP valide", erreurs, controles)
+    if source_path.is_file():
+        try:
+            import tarfile
 
-    if not erreurs:
-        with tempfile.TemporaryDirectory(prefix="sentiment-app-verification-") as temp:
-            env_dir = Path(temp) / "venv"
-            venv.EnvBuilder(with_pip=True).create(env_dir)
-            python = python_venv(env_dir)
-            installation = lancer(
-                [str(python), "-m", "pip", "install", f"{roue_path}[test]"]
-            )
-            if installation.returncode != 0:
-                print(installation.stdout, end="")
-                print(installation.stderr, file=sys.stderr, end="")
+            with tarfile.open(source_path, "r:gz") as archive:
+                contenu_source = archive.getnames()
             verifier(
-                installation.returncode == 0,
-                "installation de la roue dans un environnement neuf",
+                any(n.endswith("/src/sentiment_app/modele/sentiment.joblib") for n in contenu_source),
+                "modèle embarqué dans la distribution source",
                 erreurs,
                 controles,
             )
-            if installation.returncode == 0:
-                env = {**os.environ, "VERIFICATION_LIVRABLE": "1"}
-                tests = subprocess.run(
-                    [str(python), "-m", "pytest", "-q", "tests/test_paquet.py"],
-                    cwd=RACINE,
-                    env=env,
-                    text=True,
-                    capture_output=True,
-                    check=False,
+        except tarfile.TarError:
+            verifier(False, "la distribution source est une archive tar.gz valide", erreurs, controles)
+
+    if not erreurs:
+        with tempfile.TemporaryDirectory(prefix="sentiment-app-verification-") as temp:
+            for label, distribution in (("roue", roue_path), ("source", source_path)):
+                env_dir = Path(temp) / f"venv-{label}"
+                venv.EnvBuilder(with_pip=True).create(env_dir)
+                python = python_venv(env_dir)
+                installation = lancer(
+                    [str(python), "-m", "pip", "install", f"{distribution}[test]"]
                 )
-                print(tests.stdout, end="")
-                if tests.stderr:
-                    print(tests.stderr, file=sys.stderr, end="")
+                if installation.returncode != 0:
+                    print(installation.stdout, end="")
+                    print(installation.stderr, file=sys.stderr, end="")
                 verifier(
-                    tests.returncode == 0,
-                    "tests lancés sur le paquet installé",
+                    installation.returncode == 0,
+                    f"installation depuis la distribution {label} dans un environnement neuf",
                     erreurs,
                     controles,
                 )
-                if tests.returncode == 0:
-                    commande = env_dir / (
-                        "Scripts/sentiment.exe" if os.name == "nt" else "bin/sentiment"
+                if installation.returncode == 0:
+                    env = {**os.environ, "VERIFICATION_LIVRABLE": "1"}
+                    tests = subprocess.run(
+                        [str(python), "-m", "pytest", "-q", "tests/test_paquet.py"],
+                        cwd=RACINE,
+                        env=env,
+                        text=True,
+                        capture_output=True,
+                        check=False,
                     )
-                    resultat = lancer(
-                        [str(commande), "--json", "Produit cassé et très décevant"]
-                    )
+                    print(tests.stdout, end="")
+                    if tests.stderr:
+                        print(tests.stderr, file=sys.stderr, end="")
                     verifier(
-                        resultat.returncode == 0 and '"label": "negative"' in resultat.stdout,
-                        f"commande installée : {resultat.stdout.strip()}",
+                        tests.returncode == 0,
+                        f"tests lancés sur le paquet installé depuis la distribution {label}",
                         erreurs,
                         controles,
                     )
+                    verifier(
+                        lancer([str(python), "-m", "pip", "check"]).returncode == 0,
+                        f"dépendances cohérentes après installation depuis {label}",
+                        erreurs,
+                        controles,
+                    )
+                    if tests.returncode == 0 and label == "roue":
+                        commande = env_dir / (
+                            "Scripts/sentiment.exe" if os.name == "nt" else "bin/sentiment"
+                        )
+                        resultat = lancer(
+                            [str(commande), "--json", "Produit cassé et très décevant"]
+                        )
+                        verifier(
+                            resultat.returncode == 0
+                            and '"label": "negative"' in resultat.stdout,
+                            f"commande installée : {resultat.stdout.strip()}",
+                            erreurs,
+                            controles,
+                        )
 
     rapport = "\n".join(
         [
-            "Vérification du livrable sentiment-app 1.0.0",
+            f"Vérification du livrable sentiment-app {VERSION}",
             *controles,
             f"Bilan : {'NON CONFORME' if erreurs else 'CONFORME'}",
             "",

@@ -3,6 +3,31 @@
 Application fil rouge du cours *Développement et déploiement d'applications intelligentes*.
 Ce dépôt grandit chaque semaine ; la semaine 1 met en place le cadrage et l'environnement.
 
+## Installer et utiliser le paquet de prédiction
+
+L'installation client ne nécessite pas de cloner ce dépôt. Python 3.11 ou plus
+récent est requis. Dans un environnement virtuel activé, installez la roue
+publiée :
+
+```powershell
+python -m pip install "https://github.com/bouthaina2004/sentiment-app/releases/download/v1.0.1/sentiment_app-1.0.1-py3-none-any.whl"
+```
+
+Le paquet inclut son modèle. Utilisez la commande installée ou l'API Python :
+
+```powershell
+sentiment "Livraison rapide, très satisfait"
+sentiment --json "Colis abîmé, service client injoignable"
+sentiment --version
+python -c "from sentiment_app import predict; print(predict('Produit conforme à la description'))"
+python -m pip check
+```
+
+Les avis blancs sont refusés avec le code de sortie 2. Le classifieur peut
+mal interpréter la négation, l'ironie ou les avis ambivalents ; son score n'est
+pas une garantie de justesse. Consultez [README-PAQUET.md](README-PAQUET.md)
+pour la documentation utilisateur complète.
+
 ## Installation (3 commandes)
 
 ```bash

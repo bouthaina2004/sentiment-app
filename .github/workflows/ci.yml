@@ -22,10 +22,11 @@ jobs:
       - name: Construire et vérifier la roue du paquet
         run: |
           . .venv/bin/activate
-          python -m pip install build
+          python -m pip install build twine
           mkdir -p src/sentiment_app/modele
           cp models/sentiment.joblib src/sentiment_app/modele/
           python -m build
-          python -m pip install --no-deps dist/sentiment_app-1.0.0-py3-none-any.whl
+          twine check dist/*
+          python -m pip install --no-deps dist/sentiment_app-1.0.1-py3-none-any.whl
           VERIFICATION_LIVRABLE=1 pytest -q tests/test_paquet.py
           SENTIMENT_BACKEND=package pytest -q tests/test_interface.py::test_backend_paquet_fonctionne_sans_api

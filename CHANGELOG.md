@@ -1,5 +1,11 @@
 # Journal des modifications
 
+## [1.0.1] - 2026-11-13
+
+- Ajout du mode de construction depuis un tag Git sans commiter le modèle.
+- Vérification de l'installation de la roue et de la distribution source.
+- Documentation client complétée dans `README.md`.
+
 ## [1.0.0] - 2026-11-13
 
 - Ajout du paquet installable `sentiment-app` et de la fonction publique `predict`.
