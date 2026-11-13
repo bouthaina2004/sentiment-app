@@ -38,3 +38,7 @@ htmlcov/
 
 # TP5
 !data/avis_exemple.csv
+
+# TP6 : le modèle n'est copié ici que pour construire la distribution.
+src/sentiment_app/modele/*.joblib
+docs/livrable-tp4.txt

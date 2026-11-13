@@ -56,3 +56,19 @@ def test_lot_et_resume(session):
     reponses = client.predire_lot(session, ["Livraison rapide, produit conforme, très satisfait",
                                             "Produit cassé et service injoignable, à fuir", "   "])
     assert client.resumer(reponses) == {"NEGATIVE": 1, "POSITIVE": 1, "REFUS OU ERREUR": 1}
+
+
+def test_backend_paquet_applique_le_seuil(monkeypatch):
+    monkeypatch.setattr(client, "BACKEND", "package")
+    monkeypatch.setattr(
+        client,
+        "_predire_paquet",
+        lambda texte: client.Reponse(True, label="INDETERMINE", score=0.55),
+    )
+    resultat = client.predire(None, "avis incertain")
+    assert resultat.ok and resultat.label == "INDETERMINE"
+
+
+def test_configuration_refuse_un_backend_inconnu():
+    with pytest.raises(ValueError, match="SENTIMENT_BACKEND"):
+        client.configurer("inconnu")

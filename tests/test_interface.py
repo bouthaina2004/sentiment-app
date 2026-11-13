@@ -1,4 +1,5 @@
 """Tests de la page Streamlit (TP5), avec l'outil de test de Streamlit (AppTest)."""
+import importlib.util
 from pathlib import Path
 
 import httpx
@@ -60,3 +61,14 @@ def test_api_injoignable(monkeypatch):
                         lambda: httpx.Client(base_url="http://127.0.0.1:9", timeout=1))
     page = AppTest.from_file(PAGE, default_timeout=30).run()
     assert page.error[0].value == client.INJOIGNABLE
+
+
+def test_backend_paquet_fonctionne_sans_api(monkeypatch):
+    spec = importlib.util.find_spec("sentiment_app")
+    if not (spec and "site-packages" in (spec.origin or "")):
+        pytest.skip("test du mode hébergé effectué après installation du wheel")
+    monkeypatch.setenv("SENTIMENT_BACKEND", "package")
+    page = AppTest.from_file(PAGE, default_timeout=30).run()
+    assert "modèle du paquet sentiment-app" in page.caption[0].value
+    resultat = analyser(page, "Livraison rapide, produit conforme, très satisfait")
+    assert resultat.metric[0].label == "Avis positif"

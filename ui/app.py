@@ -2,6 +2,7 @@
 
 Lancer, API déjà démarrée dans un autre terminal : streamlit run ui/app.py
 """
+import os
 import sys
 from pathlib import Path
 
@@ -12,8 +13,32 @@ import streamlit as st
 
 from ui import client
 
+
+def lire_configuration(nom: str, defaut: str) -> str:
+    secrets_configures = any(
+        Path(chemin).is_file()
+        or (Path(chemin).is_dir() and any(Path(chemin).iterdir()))
+        for chemin in st.config.get_option("secrets.files")
+    )
+    if not secrets_configures:
+        return os.environ.get(nom, defaut)
+    try:
+        return str(st.secrets[nom])
+    except KeyError:
+        return os.environ.get(nom, defaut)
+
+
 st.set_page_config(page_title="Analyse de sentiment")
 st.title("Analyse de sentiment des avis")
+
+try:
+    client.configurer(
+        lire_configuration("SENTIMENT_BACKEND", "api"),
+        lire_configuration("API_URL", client.API_URL),
+    )
+except ValueError as erreur:
+    st.error(f"Configuration invalide : {erreur}")
+    st.stop()
 
 session = client.creer_session()
 etat = client.sante(session)
