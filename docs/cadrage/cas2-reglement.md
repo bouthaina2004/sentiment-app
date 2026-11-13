@@ -14,7 +14,7 @@ Cocher une seule case :
 
 - [ ] Règles métier
 - [ ] Machine learning
-- [ ] RAG
+- [x] RAG
 - [ ] Modèle génératif seul
 
 ## Justification (obligatoire, citer au moins deux critères de la grille : (a) données étiquetées, (b) vérifiabilité, (c) coût par requête, (d) conséquence d'une erreur)

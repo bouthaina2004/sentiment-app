@@ -13,7 +13,7 @@ Le responsable du service client ou les agents de support qualité chargés du t
 Cocher une seule case :
 
 - [ ] Règles métier
-- [X] Machine learning
+- [x] Machine learning
 - [ ] RAG
 - [ ] Modèle génératif seul
 

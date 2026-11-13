@@ -13,7 +13,7 @@ Le pharmacien titulaire ou le préparateur en pharmacie au comptoir lors de l'an
 Cocher une seule case :
 
 - [ ] Règles métier
-- [X] Machine learning
+- [x] Machine learning
 - [ ] RAG
 - [ ] Modèle génératif seul
 
