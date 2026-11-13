@@ -14,6 +14,7 @@ pytestmark = pytest.mark.skipif(not MODELE.exists(), reason="modèle non produit
 @pytest.fixture(scope="module")
 def client():
     from fastapi.testclient import TestClient
+
     from api.main import app
     with TestClient(app) as c:  # le "with" déclenche lifespan (chargement du modèle)
         yield c
@@ -45,6 +46,12 @@ def test_predict_negatif(client):
     r = client.post("/predict", json={"text": "Produit cassé et service injoignable, à fuir"})
     assert r.status_code == 200
     assert r.json()["label"] == "NEGATIVE"
+
+def test_texte_hors_vocabulaire_indetermine(client):
+    r = client.post("/predict", json={"text": "zxqv blorf tazm plok"})
+    assert r.status_code == 200
+    assert r.json()["label"] == "INDETERMINE"
+    assert 0.0 <= r.json()["score"] <= 1.0
 
 
 def test_predict_texte_vide_422(client):
